@@ -216,7 +216,9 @@ class Requests(Base):
         self.assertEqual(call("POST", f"/requests/{rid}/decline", token=self.tok["ada"])[1]["status"], "declined")
         self.assertEqual(call("POST", f"/requests/{rid}/decline", token=self.tok["ada"])[0], 200)
         self.assertErr(call("POST", f"/requests/{rid}/cancel", token=self.tok["bob"]), 409, "request_not_pending")
-        self.assertIn(call("POST", f"/requests/{rid}/decline", token=self.tok["cy"])[0], (403, 404))
+        self.assertErr(call("POST", f"/requests/{rid}/decline", token=self.tok["cy"]), 403, "forbidden")
+        self.assertErr(call("POST", f"/requests/{rid}/pay", {}, token=self.tok["cy"], key=new_key()),
+                       403, "forbidden")
         self.assertErr(call("POST", "/requests/nope/decline", token=self.tok["cy"]), 404, "not_found")
 
     def test_listing_filters_and_pagination(self):

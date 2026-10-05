@@ -423,8 +423,10 @@ class Store:
             return public(self._make_request(requester, payer, amount, note))
 
     def _request_for(self, user: dict, request_id: str) -> dict:
+        # Existence is checked here; per-action ownership (403 for anyone else,
+        # third parties included) is checked by the caller.
         r = self.state["requests"].get(request_id)
-        if r is None or user["id"] not in (r["payer_id"], r["requester_id"]):
+        if r is None:
             raise ApiError(404, "not_found", "no such request")
         return r
 
