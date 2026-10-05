@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Unfire Dark Factory - Pocketful</title>
+<style>
+@page { size: 16in 9in; margin: 0; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif; background:#0b0b0c; color:#f5f5f7; }
+.slide { width:16in; height:9in; padding:0.7in 0.9in; page-break-after:always; display:flex; flex-direction:column; justify-content:space-between; background:linear-gradient(135deg,#09090a 0%,#17171a 100%); }
+.slide:last-child { page-break-after:auto; }
+.kicker { font-size:20px; letter-spacing:.16em; text-transform:uppercase; color:#a1a1aa; }
+h1 { font-size:58px; line-height:1.03; margin:0.18in 0 0; font-weight:700; letter-spacing:-0.03em; }
+h2 { font-size:42px; line-height:1.08; margin:0 0 .28in; font-weight:650; letter-spacing:-0.02em; }
+p, li { font-size:24px; line-height:1.38; color:#d6d6db; }
+ul { margin:.05in 0 0 .28in; padding:0; }
+li { margin:.11in 0; }
+.grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:.22in; }
+.card { background:#202024; border:1px solid #33333a; border-radius:20px; padding:.25in; }
+.card h3 { font-size:24px; margin:0 0 .1in; }
+.big { font-size:46px; font-weight:700; }
+.good { color:#8ef0a7; }
+.muted { color:#8d8d98; }
+.footer { font-size:17px; color:#777782; display:flex; justify-content:space-between; }
+.quote { font-size:34px; line-height:1.25; max-width:12.8in; }
+.two { display:grid; grid-template-columns:1.08fr .92fr; gap:.4in; align-items:center; }
+img { max-width:100%; max-height:5.7in; border-radius:18px; border:1px solid #33333a; }
+code { font-family:"SFMono-Regular",Menlo,monospace; color:#f5f5f7; }
+</style>
+</head>
+<body>
+<section class="slide">
+  <div>
+    <div class="kicker">Unfire · Dark Factory · Pocketful</div>
+    <h1>A software factory that builds, attacks, and verifies its own work.</h1>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>Factory</h3><div class="big">6 seats</div><p>Architect, Builder, Auditor + continuation seats in one Band room.</p></div>
+    <div class="card"><h3>Result</h3><div class="big good">Stage 4</div><p>All four cumulative stages completed.</p></div>
+    <div class="card"><h3>Verification</h3><div class="big good">PASS</div><p>Host + isolated harness, clean container, public clone verified.</p></div>
+  </div>
+  <div class="footer"><span>Unfire</span><span>WeAreDevelopers x BAND 2026</span></div>
+</section>
+
+<section class="slide">
+  <div>
+    <div class="kicker">Factory design</div>
+    <h2>Three responsibilities. No seat accepts its own work.</h2>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>Architect</h3><p>Reads the complete spec, decomposes acceptance criteria, identifies concurrency and atomicity risks, and gates progression.</p></div>
+    <div class="card"><h3>Builder</h3><p>Implements the smallest robust solution, preserves earlier stages, writes tests, and hands off exact evidence.</p></div>
+    <div class="card"><h3>Auditor</h3><p>Derives independent black-box and adversarial checks, reproduces failures, and approves only after repair.</p></div>
+  </div>
+  <div class="quote">The product-specific task lives in the room. The mandates remain generic and reusable.</div>
+  <div class="footer"><span>Generic mandates</span><span>Evidence-gated handoffs</span></div>
+</section>
+
+<section class="slide">
+  <div class="two">
+    <div>
+      <div class="kicker">Real collaboration</div>
+      <h2>Review changed the implementation.</h2>
+      <ul>
+        <li>Stage 1: caught stale-account reset/import races that could become 5xx.</li>
+        <li>Stage 2: caught a missing visible label in the capture UI.</li>
+        <li>Stage 3: preserved immutable statement snapshots across later operations and imports.</li>
+        <li>Stage 4: challenged refund caps, linked-payment immutability, batch atomicity and concurrent stale revisions.</li>
+      </ul>
+    </div>
+    <div><img src="cover.png" alt="Band room"></div>
+  </div>
+  <div class="footer"><span>Band room evidence</span><span>Independent review loop</span></div>
+</section>
+
+<section class="slide">
+  <div>
+    <div class="kicker">Final evidence</div>
+    <h2>Stage 1 through Stage 4 pass in isolated mode.</h2>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>Stage 1</h3><div class="big good">147 / 147</div></div>
+    <div class="card"><h3>Stage 2</h3><div class="big good">35 / 35</div></div>
+    <div class="card"><h3>Stage 3</h3><div class="big good">6 / 6</div></div>
+    <div class="card"><h3>Stage 4</h3><div class="big good">5 / 5</div></div>
+    <div class="card"><h3>Highest contiguous</h3><div class="big good">4</div></div>
+    <div class="card"><h3>Claimed stage</h3><div class="big good">4</div></div>
+  </div>
+  <p>Public repository was cloned fresh and passed the offline submission checker.</p>
+  <div class="footer"><span><code>27d4848de3b7ab980343ac21a5b51fd651c8540e</code></span><span>Docker isolated</span></div>
+</section>
+
+<section class="slide">
+  <div>
+    <div class="kicker">Submission</div>
+    <h2>Pocketful, produced by an evidence-gated Band factory.</h2>
+    <p class="quote">A reusable multi-agent software-production pattern: complete context in, independently verified software out.</p>
+  </div>
+  <div class="card">
+    <p><b>Repository</b><br><code>github.com/ondmindmanagement-hub/unfire-dark-factory-pocketful</code></p>
+    <p><b>Video</b><br><code>youtu.be/ro46awpHcRs</code></p>
+  </div>
+  <div class="footer"><span>Unfire</span><span>Omar Baró</span></div>
+</section>
+</body>
+</html>
