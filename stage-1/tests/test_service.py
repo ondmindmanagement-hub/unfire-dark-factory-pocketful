@@ -348,6 +348,33 @@ class Lifecycle(Base):
                 action()
             self.assertEqual((ctx.exception.status, ctx.exception.code), (401, "unauthenticated"))
 
+    def test_reset_and_import_racing_authenticated_calls_never_5xx(self):
+        s, export = call("GET", "/_test/export")
+        token = self.tok["ada"]
+        swap_fixture = fixture(users=[user("zed", 5), user("bob", 1)])
+
+        def worker(i):
+            kind = i % 6
+            if kind == 0:
+                return call("POST", "/_test/reset", swap_fixture)[0]
+            if kind == 1:
+                return call("POST", "/_test/import", export)[0]
+            if kind == 2:
+                return call("GET", "/me", token=token)[0]
+            if kind == 3:
+                return call("POST", "/payments", {"to_handle": "bob", "amount": 1},
+                            token=token, key=new_key())[0]
+            if kind == 4:
+                return call("POST", "/splits", {"amount": 3, "participant_handles": ["bob"]},
+                            token=token, key=new_key())[0]
+            return call("GET", "/activity", token=token)[0]
+
+        for _ in range(3):
+            with ThreadPoolExecutor(48) as pool:
+                statuses = list(pool.map(worker, range(240)))
+            self.assertFalse([st for st in statuses if st >= 500], statuses)
+            self.assertTrue(set(statuses) <= {200, 201, 204, 401, 404, 409}, set(statuses))
+
     def test_negative_fixture_balance_changes_nothing(self):
         self.pay("ada", "bob", 7)
         bad = fixture(users=[user("zed", -1)])
