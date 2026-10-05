@@ -454,11 +454,12 @@
       const label = direction === "incoming" ? "@" + other + " asked you" : "You asked @" + other;
       const actions = [];
       if (pending && direction === "incoming") {
-        const vis = h("select", { "aria-label": "Payment visibility", class: "small" },
+        const vis = h("select", { class: "small" },
           h("option", { value: "public" }, "Public"), h("option", { value: "private" }, "Private"));
+        const visLabel = h("label", { class: "check" }, "Show as ", vis);
         actions.push(
           h("button", { class: "btn small", type: "button", testid: "request-pay-" + r.request_id, onclick: (e) => { e.target.disabled = true; act(r, "pay", { visibility: vis.value }); } }, "Pay " + money(r.amount, m.minor_units, m.currency)),
-          vis,
+          visLabel,
           h("button", { class: "btn danger small", type: "button", testid: "request-decline-" + r.request_id, onclick: (e) => { e.target.disabled = true; act(r, "decline"); } }, "Decline"));
       }
       if (pending && direction === "outgoing") {
@@ -560,10 +561,10 @@
       const label = incoming ? "@" + a.from_handle + " is holding for you" : "You're holding for @" + a.to_handle;
       const actions = [];
       if (a.status === "open" && incoming) {
-        const amt = h("input", { id: "cap-" + a.authorization_id, testid: "authorization-capture-amount-" + a.authorization_id, inputmode: "decimal", value: plainDecimal(a.remaining_amount, m.minor_units), "aria-label": "Amount to collect" });
+        const amt = h("input", { id: "cap-" + a.authorization_id, testid: "authorization-capture-amount-" + a.authorization_id, inputmode: "decimal", value: plainDecimal(a.remaining_amount, m.minor_units) });
         const keep = h("input", { type: "checkbox", id: "keep-" + a.authorization_id });
         actions.push(
-          h("div", { class: "field" }, amt),
+          h("div", { class: "field" }, h("label", { for: "cap-" + a.authorization_id }, "Amount to collect (" + (a.currency || m.currency) + ")"), amt),
           h("button", { class: "btn small", type: "button", testid: "authorization-capture-" + a.authorization_id, onclick: () => {
             const p = parseAmount(amt.value, m.minor_units);
             if (p.error) { setMsg(errSlot, "authorization-error", "error", p.error); return; }
