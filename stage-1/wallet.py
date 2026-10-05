@@ -300,6 +300,15 @@ class Store:
                 raise ApiError(401, "unauthenticated", "missing or unknown bearer token")
             return user
 
+    def _live(self, user: dict) -> dict:
+        """Re-resolve an authenticated caller in the current state (caller holds
+        the lock). A reset/import between authentication and use can remove the
+        account; that is a stale credential (401), never a server error."""
+        live = self.state["users"].get(user["id"])
+        if live is None:
+            raise ApiError(401, "unauthenticated", "account no longer exists")
+        return live
+
     def is_operator(self, uid: str) -> bool:
         with self.lock:
             return uid in self.state["operators"]
@@ -324,7 +333,7 @@ class Store:
     # ---- reads ----
     def me(self, user: dict) -> dict:
         with self.lock:
-            u = self.state["users"][user["id"]]
+            u = self._live(user)
             return {"user_id": u["id"], "display_name": u["display_name"], "handle": u["handle"],
                     "balance": u["balance"], "currency": self.state["currency"],
                     "minor_units": self.state["minor_units"]}
@@ -389,7 +398,7 @@ class Store:
         note = note_field(body)
         visibility = visibility_field(body)
         with self.lock:
-            sender = self.state["users"][user["id"]]
+            sender = self._live(user)
             if to_handle == sender["handle"]:
                 raise ApiError(422, "self_payment", "cannot pay yourself")
             receiver = self._user_by_handle(to_handle)
@@ -416,7 +425,7 @@ class Store:
         amount = amount_field(body)
         note = note_field(body)
         with self.lock:
-            requester = self.state["users"][user["id"]]
+            requester = self._live(user)
             if payer_handle == requester["handle"]:
                 raise ApiError(422, "self_request", "cannot request from yourself")
             payer = self._user_by_handle(payer_handle)
@@ -477,7 +486,7 @@ class Store:
                 raise validation("participant_handles contains an invalid handle")
         note = note_field(body)
         with self.lock:
-            requester = self.state["users"][user["id"]]
+            requester = self._live(user)
             participants = [self._user_by_handle(h) for h in handles]
             shares = equal_split(amount, len(handles))
             created_at = now_iso()

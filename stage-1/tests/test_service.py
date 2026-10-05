@@ -336,6 +336,18 @@ class Lifecycle(Base):
         self.assertErr(call("POST", "/auth/signup", {"email": "nope", "password": "longenough",
                                                      "display_name": "X"}), 422, "validation_failed")
 
+    def test_caller_removed_by_concurrent_reset_is_401_not_5xx(self):
+        # Simulates a reset landing between authentication and the write.
+        stale = app.STORE.authenticate(self.tok["ada"])
+        self.reset(fixture(users=[user("zed", 5), user("bob", 1)]))
+        for action in (lambda: app.STORE.me(stale),
+                       lambda: app.STORE.create_payment(stale, {"to_handle": "bob", "amount": 1}),
+                       lambda: app.STORE.create_request(stale, {"payer_handle": "bob", "amount": 1}),
+                       lambda: app.STORE.create_split(stale, {"amount": 1, "participant_handles": ["bob"]})):
+            with self.assertRaises(app.ApiError) as ctx:
+                action()
+            self.assertEqual((ctx.exception.status, ctx.exception.code), (401, "unauthenticated"))
+
     def test_negative_fixture_balance_changes_nothing(self):
         self.pay("ada", "bob", 7)
         bad = fixture(users=[user("zed", -1)])
