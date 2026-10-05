@@ -306,7 +306,9 @@ class Store:
     def export(self) -> dict:
         with self.lock:
             snapshot = copy.deepcopy(self.state)
-        return {"track": TRACK, "format_version": FORMAT_VERSION, "state": snapshot}
+            statement_snapshots = copy.deepcopy(self.snapshots)
+        return {"track": TRACK, "format_version": FORMAT_VERSION, "state": snapshot,
+                "snapshots": statement_snapshots}
 
     def import_(self, document) -> None:
         if not isinstance(document, dict):
@@ -317,8 +319,19 @@ class Store:
         if not is_number(version) or integral(version) != FORMAT_VERSION:
             raise validation("unsupported format_version")
         state = validate_state(document.get("state"))
+        raw_snapshots = document.get("snapshots", {})
+        if not isinstance(raw_snapshots, dict):
+            raise validation("snapshots must be an object")
+        snapshots = {}
+        for token, snap in raw_snapshots.items():
+            if (not isinstance(token, str) or not isinstance(snap, dict)
+                    or snap.get("uid") not in state["users"] or not isinstance(snap.get("result"), dict)
+                    or not isinstance(snap["result"].get("entries"), list)):
+                raise validation("invalid statement snapshot")
+            snapshots[token] = copy.deepcopy(snap)
         with self.lock:
             self._install(state)
+            self.snapshots = snapshots
 
     # ---- auth ----
     def signup(self, body: dict) -> dict:

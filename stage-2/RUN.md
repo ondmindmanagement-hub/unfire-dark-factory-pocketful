@@ -1,10 +1,10 @@
-# Stage 1 — run
+# Stage 2 — run
 
 Build and start (no manual setup; the image has no runtime dependencies beyond the
 Python standard library):
 
 ```sh
-docker build -t wallet-stage-1 . && docker run --rm -e PORT=8080 -p 8080:8080 wallet-stage-1
+docker build -t wallet-stage-2 . && docker run --rm -e PORT=8080 -p 8080:8080 wallet-stage-2
 ```
 
 Then `curl http://localhost:8080/health` returns `{"status": "ok"}`.

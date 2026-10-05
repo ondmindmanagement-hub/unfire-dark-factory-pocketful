@@ -312,7 +312,9 @@ class Store:
     def export(self) -> dict:
         with self.lock:
             snapshot = copy.deepcopy(self.state)
-        return {"track": TRACK, "format_version": FORMAT_VERSION, "state": snapshot}
+            statement_snapshots = copy.deepcopy(self.snapshots)
+        return {"track": TRACK, "format_version": FORMAT_VERSION, "state": snapshot,
+                "snapshots": statement_snapshots}
 
     def import_(self, document) -> None:
         if not isinstance(document, dict):
@@ -323,8 +325,19 @@ class Store:
         if not is_number(version) or integral(version) != FORMAT_VERSION:
             raise validation("unsupported format_version")
         state = validate_state(document.get("state"))
+        raw_snapshots = document.get("snapshots", {})
+        if not isinstance(raw_snapshots, dict):
+            raise validation("snapshots must be an object")
+        snapshots = {}
+        for token, snap in raw_snapshots.items():
+            if (not isinstance(token, str) or not isinstance(snap, dict)
+                    or snap.get("uid") not in state["users"] or not isinstance(snap.get("result"), dict)
+                    or not isinstance(snap["result"].get("entries"), list)):
+                raise validation("invalid statement snapshot")
+            snapshots[token] = copy.deepcopy(snap)
         with self.lock:
             self._install(state)
+            self.snapshots = snapshots
 
     # ---- auth ----
     def signup(self, body: dict) -> dict:
@@ -732,8 +745,8 @@ class Store:
 
             recorded_us = max([instant] + [parse_ts(row["previous"]["recorded_at"]) + 1 for row in parsed])
             recorded_at = iso_us(recorded_us)
-            # Allocate the id only after every non-history precondition has passed.
-            cbid = self._new_id("cb", "correction_batches")
+            # Build a candidate without consuming any state, including identifiers.
+            cbid = None
             revisions = []
             replacements = {}
             for row in parsed:
@@ -750,15 +763,10 @@ class Store:
                 revisions.append(revision)
                 replacements[payment["payment_id"]] = revision
 
-            try:
-                self._check_history(replacements, recorded_us)
-            except Exception:
-                # _new_id touched only the counter. A rejected batch must be fully atomic.
-                # Restore that counter to its previous logical position.
-                counter = self.state["counters"].get("cb", 0)
-                if counter > 0:
-                    self.state["counters"]["cb"] = counter - 1
-                raise
+            self._check_history(replacements, recorded_us)
+            cbid = self._new_id("cb", "correction_batches")
+            for revision in revisions:
+                revision["correction_batch_id"] = cbid
 
             for uid, delta in net.items():
                 self.state["users"][uid]["balance"] += delta
